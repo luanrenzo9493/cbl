@@ -22,15 +22,12 @@ jobs:
           
       - name: Criando o Túnel e Exibindo Dados de Conexão
         run: |
-          # Define a região padrão (us) para evitar que o Ngrok trave perguntando
-          ngrok config set region us
-          
           Write-Host "Iniciando o túnel Ngrok..."
-          # Rodamos o Ngrok diretamente. O '--log=stdout' vai cuspir o erro real no console do GitHub se algo der errado!
-          # O '&' no começo faz o PowerShell rodar em segundo plano de um jeito mais amigável.
-          $NgrokProcess = Start-Process ngrok -ArgumentList "tcp 3389 --log=stdout" -PassThru
           
-          # Aguarda o processo estabilizar
+          # Passamos a região 'us' direto no comando do túnel
+          $NgrokProcess = Start-Process ngrok -ArgumentList "tcp 3389 --region us" -PassThru
+          
+          # Aguarda 15 segundos para o túnel estabelecer
           Start-Sleep -Seconds 15
           
           # Pega o endereço público gerado
