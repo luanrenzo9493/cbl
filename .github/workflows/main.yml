@@ -7,14 +7,18 @@ jobs:
   build:
     runs-on: windows-2022 # Windows Server 2022
     steps:
-      - name: Instalando o Ngrok via Winget
+      - name: Baixando e Configurando o Ngrok (Link Oficial)
         run: |
-          winget install ngrok.ngrok --silent --accept-source-agreements --accept-package-agreements
+          # Baixa o zip oficial estável do site do Ngrok
+          Invoke-WebRequest -Uri "https://bin.equinox.io/c/bNy7823bHhQ/ngrok-v3-stable-windows-amd64.zip" -OutFile "ngrok.zip"
+          
+          # Descompacta o conteúdo na pasta atual
+          Expand-Archive -Path "ngrok.zip" -DestinationPath "."
           
       - name: Autenticando o Ngrok
         run: |
-          # O winget adiciona o ngrok direto nas variáveis de ambiente do sistema
-          ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+          # Executa o ngrok que foi descompactado na raiz
+          .\ngrok.exe config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
           
       - name: Ativando o Acesso RDP
         run: |
@@ -24,10 +28,10 @@ jobs:
       - name: Criando o Túnel e Exibindo Dados de Conexão
         run: |
           # Inicia o túnel na porta do RDP (3389)
-          Start-Process ngrok -ArgumentList "tcp 3389"
+          Start-Process .\ngrok.exe -ArgumentList "tcp 3389"
           Start-Sleep -Seconds 12
           
-          # Pega o endereço público gerado pelo Ngrok
+          # Pega o endereço público gerado pelo Ngrok via API local
           $tunnels = Invoke-RestMethod -Uri http://localhost:4040/api/tunnels
           $public_url = $tunnels.tunnels.public_url
           
