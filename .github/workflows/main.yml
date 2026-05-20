@@ -22,14 +22,18 @@ jobs:
           
       - name: Criando o Túnel e Exibindo Dados de Conexão
         run: |
-          # Inicia o túnel na porta do RDP (3389)
-          Start-Process ngrok -ArgumentList "tcp 3389 --log=stdout"
+          # Define a região padrão (us) para evitar que o Ngrok trave perguntando
+          ngrok config set region us
           
-          # Aguarda 20 segundos para o Chocolatey e o Ngrok iniciarem totalmente
-          Write-Host "Aguardando o Ngrok iniciar..."
-          Start-Sleep -Seconds 20
+          Write-Host "Iniciando o túnel Ngrok..."
+          # Rodamos o Ngrok diretamente. O '--log=stdout' vai cuspir o erro real no console do GitHub se algo der errado!
+          # O '&' no começo faz o PowerShell rodar em segundo plano de um jeito mais amigável.
+          $NgrokProcess = Start-Process ngrok -ArgumentList "tcp 3389 --log=stdout" -PassThru
           
-          # Tenta obter a URL oficial gerada
+          # Aguarda o processo estabilizar
+          Start-Sleep -Seconds 15
+          
+          # Pega o endereço público gerado
           try {
               $tunnels = Invoke-RestMethod -Uri "http://localhost:4040/api/tunnels" -TimeoutSec 10
               $public_url = $tunnels.tunnels.public_url
@@ -40,17 +44,19 @@ jobs:
                   Write-Host $public_url
                   Write-Host "===================================================="
               } else {
-                  Write-Host "Erro: O túnel foi criado, mas a URL não foi encontrada."
+                  Write-Host "Erro: API respondeu, mas sem URL pública."
               }
           } catch {
-              Write-Host "Erro ao conectar na API local do Ngrok. Tentando novamente em 10 segundos..."
-              Start-Sleep -Seconds 10
-              $tunnels = Invoke-RestMethod -Uri "http://localhost:4040/api/tunnels"
-              $public_url = $tunnels.tunnels.public_url
               Write-Host "===================================================="
-              Write-Host "CONECTE NO SEU RDP USANDO O ENDEREÇO ABAIXO:"
-              Write-Host $public_url
+              Write-Host "ERRO CRÍTICO: O Ngrok não iniciou corretamente."
+              Write-Host "Verificando se o processo do Ngrok ainda está vivo..."
+              if ($NgrokProcess.HasExited) {
+                  Write-Host "O processo do Ngrok FECHOU sozinho! Código de saída: $($NgrokProcess.ExitCode)"
+              } else {
+                  Write-Host "O processo está aberto, mas a API travou."
+              }
               Write-Host "===================================================="
+              exit 1
           }
           
       - name: Manter o RDP Vivo (6 Horas)
