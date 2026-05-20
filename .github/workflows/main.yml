@@ -9,12 +9,10 @@ jobs:
     steps:
       - name: Instalando o Ngrok via Chocolatey
         run: |
-          # O choco já vem instalado no GitHub Actions e baixa a versão oficial atualizada
           choco install ngrok --no-progress -y
           
       - name: Autenticando o Ngrok
         run: |
-          # O choco adiciona o ngrok direto no PATH, então o comando fica global
           ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
           
       - name: Ativando o Acesso RDP
@@ -25,17 +23,35 @@ jobs:
       - name: Criando o Túnel e Exibindo Dados de Conexão
         run: |
           # Inicia o túnel na porta do RDP (3389)
-          Start-Process ngrok -ArgumentList "tcp 3389"
-          Start-Sleep -Seconds 12
+          Start-Process ngrok -ArgumentList "tcp 3389 --log=stdout"
           
-          # Pega o endereço público gerado pelo Ngrok via API local
-          $tunnels = Invoke-RestMethod -Uri http://localhost:4040/api/tunnels
-          $public_url = $tunnels.tunnels.public_url
+          # Aguarda 20 segundos para o Chocolatey e o Ngrok iniciarem totalmente
+          Write-Host "Aguardando o Ngrok iniciar..."
+          Start-Sleep -Seconds 20
           
-          Write-Host "===================================================="
-          Write-Host "CONECTE NO SEU RDP USANDO O ENDEREÇO ABAIXO:"
-          Write-Host $public_url
-          Write-Host "===================================================="
+          # Tenta obter a URL oficial gerada
+          try {
+              $tunnels = Invoke-RestMethod -Uri "http://localhost:4040/api/tunnels" -TimeoutSec 10
+              $public_url = $tunnels.tunnels.public_url
+              
+              if ($public_url) {
+                  Write-Host "===================================================="
+                  Write-Host "CONECTE NO SEU RDP USANDO O ENDEREÇO ABAIXO:"
+                  Write-Host $public_url
+                  Write-Host "===================================================="
+              } else {
+                  Write-Host "Erro: O túnel foi criado, mas a URL não foi encontrada."
+              }
+          } catch {
+              Write-Host "Erro ao conectar na API local do Ngrok. Tentando novamente em 10 segundos..."
+              Start-Sleep -Seconds 10
+              $tunnels = Invoke-RestMethod -Uri "http://localhost:4040/api/tunnels"
+              $public_url = $tunnels.tunnels.public_url
+              Write-Host "===================================================="
+              Write-Host "CONECTE NO SEU RDP USANDO O ENDEREÇO ABAIXO:"
+              Write-Host $public_url
+              Write-Host "===================================================="
+          }
           
       - name: Manter o RDP Vivo (6 Horas)
         run: |
