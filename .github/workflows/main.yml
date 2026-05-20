@@ -7,18 +7,15 @@ jobs:
   build:
     runs-on: windows-2022 # Windows Server 2022
     steps:
-      - name: Baixando e Configurando o Ngrok (Link Oficial)
+      - name: Instalando o Ngrok via Chocolatey
         run: |
-          # Baixa o zip oficial estável do site do Ngrok
-          Invoke-WebRequest -Uri "https://bin.equinox.io/c/bNy7823bHhQ/ngrok-v3-stable-windows-amd64.zip" -OutFile "ngrok.zip"
-          
-          # Descompacta o conteúdo na pasta atual
-          Expand-Archive -Path "ngrok.zip" -DestinationPath "."
+          # O choco já vem instalado no GitHub Actions e baixa a versão oficial atualizada
+          choco install ngrok --no-progress -y
           
       - name: Autenticando o Ngrok
         run: |
-          # Executa o ngrok que foi descompactado na raiz
-          .\ngrok.exe config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+          # O choco adiciona o ngrok direto no PATH, então o comando fica global
+          ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
           
       - name: Ativando o Acesso RDP
         run: |
@@ -28,7 +25,7 @@ jobs:
       - name: Criando o Túnel e Exibindo Dados de Conexão
         run: |
           # Inicia o túnel na porta do RDP (3389)
-          Start-Process .\ngrok.exe -ArgumentList "tcp 3389"
+          Start-Process ngrok -ArgumentList "tcp 3389"
           Start-Sleep -Seconds 12
           
           # Pega o endereço público gerado pelo Ngrok via API local
