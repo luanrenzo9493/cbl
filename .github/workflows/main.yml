@@ -1,0 +1,37 @@
+name: Windows Server 2022 RDP
+
+on:
+  workflow_dispatch: # Permite que você ative manualmente
+
+jobs:
+  build:
+    runs-on: windows-2022 # Define o Windows Server 2022
+    steps:
+      - name: Baixando e Configurando o Ngrok
+        run: |
+          Invoke-WebRequest https://bin.equinox.io/c/bNy7823bHhQ/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
+          Expand-Archive ngrok.zip
+          
+      - name: Autenticando o Ngrok
+        run: |
+          .\ngrok\ngrok.exe authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+          
+      - name: Ativando o Acesso RDP
+        run: |
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+          
+      - name: Criando o Túnel e Exibindo Dados de Conexão
+        run: |
+          Start-Process .\ngrok\ngrok.exe -ArgumentList "tcp 3389"
+          Start-Sleep -Seconds 10
+          Invoke-RestMethod -Uri http://localhost:4040/api/tunnels | Select-Object -ExpandProperty tunnels | Select-Object -ExpandProperty public_url
+          
+      - name: Manter o RDP Vivo (6 Horas)
+        run: |
+          $val = 21600
+          while ($val -gt 0) {
+            Write-Host "Tempo restante: $val segundos"
+            Start-Sleep -Seconds 60
+            $val -= 60
+          }
