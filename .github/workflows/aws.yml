@@ -37,8 +37,4 @@ jobs:
 
     - name: Start ngrok Tunnel
       run: |
-        Start-Process Powershell -ArgumentList '-NoExit -Command ".\ngrok\ngrok.exe tcp 3389"'
-
-    - name: Keep Alive
-      run: |
-        while ($true) { Start-Sleep -Seconds 60 }
+        .\ngrok\ngrok.exe tcp 3389
