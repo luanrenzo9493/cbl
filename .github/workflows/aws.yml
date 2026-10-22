@@ -11,7 +11,7 @@ jobs:
     steps:
     - name: Download ngrok
       run: |
-        Invoke-WebRequest https://equinox.io -OutFile ngrok.zip
+        Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
 
     - name: Extract ngrok
       run: |
@@ -35,4 +35,11 @@ jobs:
 
     - name: Start ngrok Tunnel
       run: |
-        .\ngrok\ngrok.exe tcp 3389
+        Start-Process .\ngrok\ngrok.exe -ArgumentList "tcp 3389"
+        Write-Host "Aguardando 10 segundos para o túnel estabilizar..."
+        Start-Sleep -Seconds 10
+        
+        # Loop infinito para manter o GitHub Actions ativo sem fechar o processo
+        while ($true) {
+            Start-Sleep -Seconds 60
+        }
