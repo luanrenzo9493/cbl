@@ -5,12 +5,10 @@ on:
 
 jobs:
   build:
-
     runs-on: windows-latest
     timeout-minutes: 9999
 
     steps:
-
     - name: Download ngrok
       run: |
         Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
@@ -35,9 +33,8 @@ jobs:
       run: |
         net user runneradmin P@ssw0rd!
 
-    -  - name: Start ngrok Tunnel
+    - name: Start ngrok Tunnel
       run: |
-        Start-Process .\ngrok\ngrok.exe -ArgumentList "tcp 3389 --log=stdout" -RedirectStandardOutput "ngrok.log"
+        .\ngrok\ngrok.exe tcp 3389 --log=stdout > ngrok.log &
         Start-Sleep -Seconds 5
         Get-Content ngrok.log
-
