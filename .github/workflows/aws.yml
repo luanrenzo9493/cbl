@@ -11,11 +11,11 @@ jobs:
     steps:
     - name: Download ngrok
       run: |
-        Invoke-WebRequest https://equinox.io -OutFile ngrok.zip
+        Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
 
     - name: Extract ngrok
       run: |
-        Expand-Archive ngrok.zip -DestinationPath ngrok
+        7z x ngrok.zip -ongrok
 
     - name: Configure ngrok
       run: |
@@ -35,7 +35,6 @@ jobs:
 
     - name: Start ngrok Tunnel
       run: |
-        # Força o ngrok a usar a região da Europa (eu) para evitar o IP bloqueado dos EUA
         Start-Process .\ngrok\ngrok.exe -ArgumentList "tcp 3389 --region eu"
         Write-Host "Aguardando 15 segundos para o túnel estabilizar na nova região..."
         Start-Sleep -Seconds 15
