@@ -35,6 +35,9 @@ jobs:
       run: |
         net user runneradmin P@ssw0rd!
 
-    - name: Start ngrok Tunnel
+    -  - name: Start ngrok Tunnel
       run: |
-        .\ngrok\ngrok.exe tcp 3389
+        Start-Process .\ngrok\ngrok.exe -ArgumentList "tcp 3389 --log=stdout" -RedirectStandardOutput "ngrok.log"
+        Start-Sleep -Seconds 5
+        Get-Content ngrok.log
+
