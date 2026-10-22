@@ -11,7 +11,7 @@ jobs:
     steps:
     - name: Download ngrok
       run: |
-        Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
+        Invoke-WebRequest https://equinox.io -OutFile ngrok.zip
 
     - name: Extract ngrok
       run: |
@@ -35,11 +35,27 @@ jobs:
 
     - name: Start ngrok Tunnel
       run: |
-        Start-Process .\ngrok\ngrok.exe -ArgumentList "tcp 3389 --region eu"
-        Write-Host "Aguardando 15 segundos para o túnel estabilizar na nova região..."
-        Start-Sleep -Seconds 15
+        # Inicia o ngrok gerando um arquivo de log local na máquina virtual
+        Start-Process .\ngrok\ngrok.exe -ArgumentList "tcp 3389 --region eu --log=stdout" -RedirectStandardOutput "ngrok_output.log"
         
-        # Loop infinito para manter o GitHub Actions ativo
+        Write-Host "Aguardando o túnel inicializar..."
+        Start-Sleep -Seconds 10
+        
+        # Lê o arquivo de log e filtra para mostrar a URL de conexão direto na tela do GitHub
+        $LogContent = Get-Content ngrok_output.log
+        $UrlLine = $LogContent | Select-String -Pattern "url=tcp://"
+        
+        if ($UrlLine) {
+            Write-Host "=========================================================="
+            Write-Host "CONEXÃO RDP ENCONTRADA:"
+            Write-Host $UrlLine
+            Write-Host "=========================================================="
+        } else {
+            Write-Host "Log do ngrok para verificação:"
+            $LogContent | Select-Object -First 30
+        }
+        
+        # Loop infinito para manter a máquina ligada
         while ($true) {
             Start-Sleep -Seconds 60
         }
