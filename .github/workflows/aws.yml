@@ -11,7 +11,7 @@ jobs:
     steps:
     - name: Download ngrok
       run: |
-        Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
+        Invoke-WebRequest https://equinox.io -OutFile ngrok.zip
 
     - name: Extract ngrok
       run: |
@@ -35,11 +35,12 @@ jobs:
 
     - name: Start ngrok Tunnel
       run: |
-        Start-Process .\ngrok\ngrok.exe -ArgumentList "tcp 3389"
-        Write-Host "Aguardando 10 segundos para o túnel estabilizar..."
-        Start-Sleep -Seconds 10
+        # Força o ngrok a usar a região da Europa (eu) para evitar o IP bloqueado dos EUA
+        Start-Process .\ngrok\ngrok.exe -ArgumentList "tcp 3389 --region eu"
+        Write-Host "Aguardando 15 segundos para o túnel estabilizar na nova região..."
+        Start-Sleep -Seconds 15
         
-        # Loop infinito para manter o GitHub Actions ativo sem fechar o processo
+        # Loop infinito para manter o GitHub Actions ativo
         while ($true) {
             Start-Sleep -Seconds 60
         }
