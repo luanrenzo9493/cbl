@@ -18,7 +18,8 @@ jobs:
               image: scottyhardy/docker-remote-desktop:latest
               container_name: debian11
               privileged: true
-              volumes: - /var/run/docker.sock:/var/run/docker.sock
+              volumes:
+                - /var/run/docker.sock:/var/run/docker.sock
               environment:
                 - PUID=1000
                 - PGID=1000
@@ -29,7 +30,7 @@ jobs:
           EOF
           docker compose up -d
           sleep 5
-          docker exec debian11 bash -c "useradd -m -s /bin/bash -G sudo admin && echo 'admin:admin' | chpasswd && echo 'admin ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && echo 'startxfce4' > /home/admin/.xsession && chown admin:admin /home/admin/.xsession"
+          docker exec debian11 bash -c "apt-get update && apt-get install -y docker.io docker-compose-v2 xarchiver unzip unrar p7zip-full && echo 'root:admin' | chpasswd && echo 'startxfce4' > /root/.xsession && useradd -m -s /bin/bash -G sudo admin && echo 'admin:admin' | chpasswd && echo 'admin ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && echo 'startxfce4' > /home/admin/.xsession && chown admin:admin /home/admin/.xsession"
 
       - name: Instalar e iniciar Ngrok TCP 3389
         env:
