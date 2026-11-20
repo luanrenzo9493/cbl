@@ -17,6 +17,7 @@ jobs:
             debian11-rdp:
               image: scottyhardy/docker-remote-desktop:latest
               container_name: debian11
+              privileged: true
               environment:
                 - PUID=1000
                 - PGID=1000
