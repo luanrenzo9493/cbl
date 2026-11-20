@@ -29,11 +29,14 @@ jobs:
           EOF
           docker compose up -d
 
-      - name: Expor acesso via Cloudflare Tunnel
+      - name: Instalar e iniciar Cloudflare Tunnel
         run: |
-          cloudflared tunnel --url http://localhost:3000 > tunnel.log 2>&1 &
-          sleep 10
-          grep -o 'https://[-0-9a-z]*\.trycloudflare\.com' tunnel.log
+          curl -L --output cloudflared.deb https://github.com
+          sudo dpkg -i cloudflared.deb
+          nohup cloudflared tunnel --url http://localhost:3000 > tunnel.log 2>&1 &
+          sleep 15
+          cat tunnel.log
+          grep -o 'https://[-0-9a-z]*\.trycloudflare\.com' tunnel.log || true
 
       - name: Manter sessão ativa para testes
         run: sleep 3600
