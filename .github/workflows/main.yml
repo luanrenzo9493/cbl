@@ -1,15 +1,24 @@
-services:
-  debian-rdp:
-    image: linuxserver/webtop:debian-xfce
-    container_name: debian11
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Recife
-      - CUSTOM_USER=admin
-      - PASSWORD=sua_senha_aqui
-    ports:
-      - "3000:3000"   # Acesso via navegador (HTTP)
-      - "3389:3389"   # Porta RDP (caso use imagem com XRDP)
-    shm_size: "2gb"
-    restart: unless-stopped
+name: Debian 11 Docker Compose
+
+on:
+  workflow_dispatch:
+
+jobs:
+  start-desktop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Subir container com Docker Compose
+        run: docker compose up -d
+
+      - name: Expor acesso via Cloudflare Tunnel (Sem precisar de conta)
+        run: |
+          wget -q https://github.com
+          sudo dpkg -i cloudflared-linux-amd64.deb
+          cloudflared tunnel --url http://localhost:3000 &
+          sleep 10
+
+      - name: Manter sessão ativa para testes
+        run: sleep 3600
