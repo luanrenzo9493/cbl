@@ -33,9 +33,7 @@ jobs:
         env:
           NGROK_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
         run: |
-          curl -sSL https://amazonaws.com | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-          echo "deb https://amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
-          sudo apt-get update && sudo apt-get install -y ngrok
+          sudo snap install ngrok
           ngrok config add-authtoken "$NGROK_TOKEN"
           nohup ngrok tcp 3389 --log=stdout > ngrok.log 2>&1 &
           sleep 10
