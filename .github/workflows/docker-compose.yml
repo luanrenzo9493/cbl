@@ -30,9 +30,10 @@ jobs:
           docker compose up -d
 
       - name: Expor acesso via Cloudflare Tunnel
-        uses: JacobLinCool/cloudflare-tunnel-action@v1
-        with:
-          url: http://localhost:3000
+        run: |
+          cloudflared tunnel --url http://localhost:3000 > tunnel.log 2>&1 &
+          sleep 10
+          grep -o 'https://[-0-9a-z]*\.trycloudflare\.com' tunnel.log
 
       - name: Manter sessão ativa para testes
         run: sleep 3600
