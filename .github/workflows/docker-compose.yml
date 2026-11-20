@@ -1,4 +1,4 @@
-name: Debian 11 Docker Compose
+name: Debian 11 RDP (Ngrok)
 
 on:
   workflow_dispatch:
@@ -14,29 +14,32 @@ jobs:
         run: |
           cat << 'EOF' > compose.yml
           services:
-            debian-rdp:
-              image: linuxserver/webtop:debian-xfce
+            debian11-rdp:
+              image: scottyhardy/docker-remote-desktop:latest
               container_name: debian11
               environment:
                 - PUID=1000
                 - PGID=1000
                 - TZ=America/Recife
-                - CUSTOM_USER=admin
+                - USER=admin
                 - PASSWORD=admin
               ports:
-                - "3000:3000"
+                - "3389:3389"
               shm_size: "2gb"
           EOF
           docker compose up -d
 
-      - name: Instalar e iniciar Cloudflare Tunnel
+      - name: Instalar e iniciar Ngrok TCP 3389
+        env:
+          NGROK_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
         run: |
-          curl -L --output cloudflared.deb https://github.com
-          sudo dpkg -i cloudflared.deb
-          nohup cloudflared tunnel --url http://localhost:3000 > tunnel.log 2>&1 &
-          sleep 15
-          cat tunnel.log
-          grep -o 'https://[-0-9a-z]*\.trycloudflare\.com' tunnel.log || true
+          curl -sSL https://amazonaws.com | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+          echo "deb https://amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+          sudo apt-get update && sudo apt-get install -y ngrok
+          ngrok config add-authtoken "$NGROK_TOKEN"
+          nohup ngrok tcp 3389 --log=stdout > ngrok.log 2>&1 &
+          sleep 10
+          grep -o 'tcp://[^ ]*' ngrok.log || cat ngrok.log
 
       - name: Manter sessão ativa para testes
-        run: sleep 3600
+        run: sleep 21000
