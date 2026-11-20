@@ -10,15 +10,32 @@ jobs:
       - name: Checkout do repositório
         uses: actions/checkout@v4
 
-      - name: Subir container com Docker Compose
-        run: docker compose up -d
+      - name: Criar compose.yml e subir container
+        run: |
+          cat << 'EOF' > compose.yml
+          services:
+            debian-rdp:
+              image: linuxserver/webtop:debian-xfce
+              container_name: debian11
+              environment:
+                - PUID=1000
+                - PGID=1000
+                - TZ=America/Recife
+                - CUSTOM_USER=admin
+                - PASSWORD=admin
+              ports:
+                - "3000:3000"
+              shm_size: "2gb"
+          EOF
+          docker compose up -d
 
-      - name: Expor acesso via Cloudflare Tunnel (Sem precisar de conta)
+      - name: Expor acesso via Cloudflare Tunnel
         run: |
           wget -q https://github.com
           sudo dpkg -i cloudflared-linux-amd64.deb
-          cloudflared tunnel --url http://localhost:3000 &
+          cloudflared tunnel --url http://localhost:3000 > tunnel.log 2>&1 &
           sleep 10
+          grep -o 'https://[-0-9a-z]*\.trycloudflare\.com' tunnel.log
 
       - name: Manter sessão ativa para testes
         run: sleep 3600
