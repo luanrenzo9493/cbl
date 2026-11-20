@@ -1,0 +1,15 @@
+services:
+  debian-rdp:
+    image: linuxserver/webtop:debian-xfce
+    container_name: debian11
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Recife
+      - CUSTOM_USER=admin
+      - PASSWORD=sua_senha_aqui
+    ports:
+      - "3000:3000"   # Acesso via navegador (HTTP)
+      - "3389:3389"   # Porta RDP (caso use imagem com XRDP)
+    shm_size: "2gb"
+    restart: unless-stopped
