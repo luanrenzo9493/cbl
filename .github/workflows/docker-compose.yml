@@ -30,7 +30,7 @@ jobs:
           EOF
           docker compose up -d
           sleep 5
-          docker exec debian11 bash -c "apt-get update && apt-get install -y docker.io docker-compose-v2 xarchiver unzip unrar p7zip-full && echo 'root:admin' | chpasswd && echo 'startxfce4' > /root/.xsession && sed -i 's/AllowRootLogin=false/AllowRootLogin=true/g' /etc/xrdp/sesman.ini && service xrdp restart"
+          docker exec debian11 bash -c "apt-get update && apt-get install -y --no-install-recommends docker.io xarchiver unzip unrar p7zip-full && apt-get clean && echo 'root:admin' | chpasswd && echo 'startxfce4' > /root/.xsession"
 
       - name: Instalar e iniciar Ngrok TCP 3389
         env:
