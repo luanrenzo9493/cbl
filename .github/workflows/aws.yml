@@ -11,7 +11,9 @@ jobs:
     steps:
     - name: Install ngrok via Chocolatey
       run: |
-        choco install ngrok -y
+        Invoke-WebRequest -Uri "https://equinox.io" -OutFile "ngrok.zip"
+        Expand-Archive -Path "ngrok.zip" -DestinationPath "C:\Windows\System32" -Force
+        Remove-Item "ngrok.zip"
 
     - name: Configure ngrok
       run: |
