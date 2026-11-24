@@ -1,15 +1,15 @@
 name: AWS
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
-    timeout-minutes: 9999
+    timeout-minutes: 360
 
     steps:
-    - name: Install ngrok via Chocolatey
+    - name: Install ngrok
       run: |
         Invoke-WebRequest -Uri "https://equinox.io" -OutFile "ngrok.zip"
         Expand-Archive -Path "ngrok.zip" -DestinationPath "C:\Windows\System32" -Force
@@ -33,13 +33,11 @@ jobs:
 
     - name: Start ngrok Tunnel
       run: |
-        # Inicia o ngrok gerando um arquivo de log local para extrairmos a URL
-        Start-Process ngrok -ArgumentList "tcp 3389 --region eu --log=stdout" -RedirectStandardOutput "ngrok_output.log"
+        Start-Process ngrok -ArgumentList "tcp 3389 --region eu --log=ngrok_output.log" -NoNewWindow
         
         Write-Host "Aguardando o túnel inicializar na região da Europa..."
         Start-Sleep -Seconds 15
         
-        # Lê o log e filtra para mostrar a URL de conexão direto na tela do GitHub
         $LogContent = Get-Content ngrok_output.log
         $UrlLine = $LogContent | Select-String -Pattern "url=tcp://"
         
@@ -49,11 +47,10 @@ jobs:
             Write-Host $UrlLine
             Write-Host "=========================================================="
         } else {
-            Write-Host "Aviso: Não foi possível filtrar a linha da URL. Mostrando as primeiras linhas do log:"
-            $LogContent | Select-Object -First 30
+            Write-Host "Aviso: Não foi possível filtrar a linha da URL. Mostrando o log:"
+            $LogContent
         }
         
-        # Loop infinito para manter a máquina ativa
         while ($true) {
             Start-Sleep -Seconds 60
         }
