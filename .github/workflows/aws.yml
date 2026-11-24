@@ -11,9 +11,10 @@ jobs:
     steps:
     - name: Install ngrok
       run: |
-        Invoke-WebRequest -Uri "https://equinox.io" -OutFile "ngrok.zip"
-        Expand-Archive -Path "ngrok.zip" -DestinationPath "C:\Windows\System32" -Force
-        Remove-Item "ngrok.zip"
+        mkdir C:\ngrok
+        curl.exe -sSL "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip" -o "C:\ngrok\ngrok.zip"
+        tar.exe -xf "C:\ngrok\ngrok.zip" -C "C:\ngrok"
+        echo "C:\ngrok" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
     - name: Configure ngrok
       run: |
